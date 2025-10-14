@@ -1,103 +1,95 @@
-import Image from "next/image";
+// app/page.tsx
+"use client";
+import { useState } from "react";
+import GoalForm from "@/app/components/GoalForm";
+import TaskCard from "@/app/components/TaskCard";
+import GanttWrapper from "@/app/components/GanttWrapper";
+import api from "@/app/lib/axios";
 
-export default function Home() {
+export default function HomePage() {
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [progress, setProgress] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // non-streaming generate (axios)
+  const generateNonStream = async (payload: { goal: string; title?: string }) => {
+    setLoading(true);
+    try {
+      const res = await api.post("/api/generate", { goal: payload.goal, title: payload.title });
+      setTasks(res.data.plan ?? res.data);
+    } catch (err: any) {
+      console.error(err);
+      alert(err?.response?.data?.error || err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // streaming: use fetch + ReadableStream (lets set Authorization header)
+  const generateStream = async (payload: { goal: string; title?: string }) => {
+    setTasks([]);
+    setProgress("");
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/generate/stream`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ goal: payload.goal, title: payload.title }),
+      });
+
+      if (!res.body) throw new Error("No streaming body available");
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let acc = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value);
+        acc += chunk;
+        setProgress((p) => (p ?? "") + chunk);
+        // Attempt to parse JSON as we accumulate; if parseable, update tasks
+        const start = acc.indexOf("[");
+        const end = acc.lastIndexOf("]");
+        if (start !== -1 && end !== -1 && end > start) {
+          try {
+            const arr = JSON.parse(acc.slice(start, end + 1));
+            setTasks(arr);
+          } catch (e) {
+            // ignore until complete
+          }
+        }
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert(err?.message || "Streaming failed");
+    } finally {
+      setLoading(false);
+      setProgress(null);
+    }
+  };
+
+  const onGenerate = async ({ goal, title, stream }: { goal: string; title?: string; stream?: boolean }) => {
+    if (stream) await generateStream({ goal, title });
+    else await generateNonStream({ goal, title });
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+    <div className="space-y-6">
+      <h1 className="text-3xl font-semibold">Smart Task Planner</h1>
+      <GoalForm onGenerate={onGenerate} />
+      <div>
+        <GanttWrapper tasks={tasks} />
+      </div>
+      {progress && <pre className="bg-white p-3 rounded text-xs text-slate-600">{progress}</pre>}
+      <div className="grid gap-3 md:grid-cols-2">
+        {tasks.map((t, i) => (
+          <TaskCard key={i} task={t} />
+        ))}
+      </div>
     </div>
   );
 }
