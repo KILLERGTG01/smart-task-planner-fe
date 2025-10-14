@@ -5,9 +5,10 @@ import GoalForm from "@/app/components/GoalForm";
 import TaskCard from "@/app/components/TaskCard";
 import GanttWrapper from "@/app/components/GanttWrapper";
 import api from "@/app/lib/axios";
+import { Task } from "@/app/lib/types";
 
 export default function HomePage() {
-  const [tasks, setTasks] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [progress, setProgress] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -17,9 +18,10 @@ export default function HomePage() {
     try {
       const res = await api.post("/api/generate", { goal: payload.goal, title: payload.title });
       setTasks(res.data.plan ?? res.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      alert(err?.response?.data?.error || err.message);
+      const error = err as any; // Type assertion for error handling
+      alert(error?.response?.data?.error || error.message);
     } finally {
       setLoading(false);
     }
@@ -63,9 +65,10 @@ export default function HomePage() {
           }
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      alert(err?.message || "Streaming failed");
+      const error = err as any; // Type assertion for error handling
+      alert(error?.message || "Streaming failed");
     } finally {
       setLoading(false);
       setProgress(null);

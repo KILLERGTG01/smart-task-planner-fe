@@ -3,10 +3,11 @@
 import { useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import "frappe-gantt/dist/frappe-gantt.css";
+import { Task, GanttTask, GanttCallbacks } from "@/app/lib/types";
 
 const FrappeGantt = dynamic(() => import("frappe-gantt"), { ssr: false });
 
-export default function GanttWrapper({ tasks }: { tasks: any[] }) {
+export default function GanttWrapper({ tasks }: { tasks: Task[] }) {
   const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -16,7 +17,7 @@ export default function GanttWrapper({ tasks }: { tasks: any[] }) {
       return;
     }
 
-    const items = tasks.map((t: any, i: number) => {
+    const items: GanttTask[] = tasks.map((t: Task, i: number) => {
       const start = new Date();
       const end = new Date();
       end.setDate(start.getDate() + (t.duration_days ?? t.duration ?? 1));
@@ -30,10 +31,10 @@ export default function GanttWrapper({ tasks }: { tasks: any[] }) {
     });
 
     ref.current.innerHTML = "";
-    // @ts-ignore
+    // @ts-ignore - FrappeGantt doesn't have proper TypeScript definitions
     const gantt = new FrappeGantt(ref.current, items, {
-      on_click: (task: any) => {},
-      on_date_change: (task: any, start: any, end: any) => {}
+      on_click: (task: GanttTask) => {},
+      on_date_change: (task: GanttTask, start: Date, end: Date) => {}
     });
 
     return () => {

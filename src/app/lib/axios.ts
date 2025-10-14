@@ -1,4 +1,3 @@
-// lib/axios.ts
 import axios from "axios";
 
 const api = axios.create({
@@ -9,12 +8,14 @@ const api = axios.create({
 api.interceptors.request.use(async (cfg) => {
   if (!cfg) return cfg;
   try {
-    // token is stored by Auth0 wrapper (localStorage) when user logs in
-    const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
-    if (token) cfg.headers = { ...(cfg.headers || {}), Authorization: `Bearer ${token}` };
-  } catch (e) {
-    // ignore
-  }
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("access_token")
+        : null;
+    if (token) {
+      cfg.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch (e) {}
   return cfg;
 });
 

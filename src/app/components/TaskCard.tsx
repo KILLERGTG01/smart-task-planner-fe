@@ -1,5 +1,7 @@
 // components/TaskCard.tsx
-export default function TaskCard({ task }: { task: any }) {
+import { Task } from "@/app/lib/types";
+
+export default function TaskCard({ task }: { task: Task }) {
   return (
     <div className="bg-white rounded shadow-sm p-4 border">
       <h3 className="font-semibold text-lg">{task.task}</h3>

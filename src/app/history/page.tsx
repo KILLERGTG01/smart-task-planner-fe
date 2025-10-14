@@ -2,6 +2,7 @@
 import useSWR from "swr";
 import api from "@/app/lib/axios";
 import { useAuth0 } from "@auth0/auth0-react";
+import { HistoryResponse, Plan } from "@/app/lib/types";
 
 function fetcher(url: string) {
   return api.get(url).then((r) => r.data);
@@ -10,7 +11,7 @@ function fetcher(url: string) {
 export default function HistoryPage() {
   const { getAccessTokenSilently, isAuthenticated } = useAuth0();
 
-  const { data, error, isLoading } = useSWR(
+  const { data, error, isLoading } = useSWR<HistoryResponse>(
     isAuthenticated ? "/api/history" : null,
     fetcher,
     { refreshInterval: 0 }
@@ -26,7 +27,7 @@ export default function HistoryPage() {
       <h1 className="text-2xl font-semibold">Your Plans</h1>
       {plans.length === 0 && <div className="text-slate-500">No saved plans yet.</div>}
       <div className="grid gap-4">
-        {plans.map((p: any) => (
+        {plans.map((p: Plan) => (
           <div key={p.id} className="bg-white p-4 rounded shadow">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold">{p.title || p.goal}</h3>
