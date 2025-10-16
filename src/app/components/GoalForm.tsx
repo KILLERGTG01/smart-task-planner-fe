@@ -9,7 +9,6 @@ const Schema = z.object({
   goal: z
     .string()
     .min(10, "Please describe your goal in at least 10 characters"),
-  stream: z.boolean().optional(),
 });
 
 type FormData = z.infer<typeof Schema>;
@@ -17,11 +16,7 @@ type FormData = z.infer<typeof Schema>;
 export default function GoalForm({
   onGenerate,
 }: {
-  onGenerate: (payload: {
-    goal: string;
-    title?: string;
-    stream?: boolean;
-  }) => void;
+  onGenerate: (payload: { goal: string; title?: string }) => void;
 }) {
   const {
     register,
@@ -32,13 +27,12 @@ export default function GoalForm({
 
   const submit = async (data: FormData) => {
     setLoading(true);
-    
+
     await onGenerate({
       goal: data.goal,
       title: data.title,
-      stream: data.stream ?? true,
     });
-    
+
     setLoading(false);
   };
 
@@ -66,14 +60,10 @@ export default function GoalForm({
           </p>
         )}
       </div>
-      <div className="flex items-center justify-between gap-3">
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" defaultChecked {...register("stream")} />
-          Stream progress
-        </label>
+      <div className="flex justify-end">
         <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           disabled={loading}
         >
           {loading ? "Generating..." : "Generate Plan"}
