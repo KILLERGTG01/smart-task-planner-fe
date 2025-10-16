@@ -1,11 +1,8 @@
-// components/GanttWrapper.tsx
+
 "use client";
 import { useEffect, useRef } from "react";
-import dynamic from "next/dynamic";
 import "frappe-gantt/dist/frappe-gantt.css";
-import { Task, GanttTask, GanttCallbacks } from "@/app/lib/types";
-
-const FrappeGantt = dynamic(() => import("frappe-gantt"), { ssr: false });
+import { Task, GanttTask } from "@/app/lib/types";
 
 export default function GanttWrapper({ tasks }: { tasks: Task[] }) {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -17,25 +14,32 @@ export default function GanttWrapper({ tasks }: { tasks: Task[] }) {
       return;
     }
 
-    const items: GanttTask[] = tasks.map((t: Task, i: number) => {
-      const start = new Date();
-      const end = new Date();
-      end.setDate(start.getDate() + (t.duration_days ?? t.duration ?? 1));
-      return {
-        id: String(i),
-        name: t.task,
-        start: start.toISOString().slice(0, 10),
-        end: end.toISOString().slice(0, 10),
-        progress: 0
-      };
-    });
+    const loadGantt = async () => {
+      const Gantt = (await import("frappe-gantt")).default;
+      
+      const items: GanttTask[] = tasks.map((t: Task, i: number) => {
+        const start = new Date();
+        const end = new Date();
+        end.setDate(start.getDate() + (t.duration_days ?? t.duration ?? 1));
+        return {
+          id: String(i),
+          name: t.task,
+          start: start.toISOString().slice(0, 10),
+          end: end.toISOString().slice(0, 10),
+          progress: 0
+        };
+      });
 
-    ref.current.innerHTML = "";
-    // @ts-ignore - FrappeGantt doesn't have proper TypeScript definitions
-    const gantt = new FrappeGantt(ref.current, items, {
-      on_click: (task: GanttTask) => {},
-      on_date_change: (task: GanttTask, start: Date, end: Date) => {}
-    });
+      if (ref.current) {
+        ref.current.innerHTML = "";
+        const gantt = new Gantt(ref.current, items, {
+          on_click: (task: GanttTask) => {},
+          on_date_change: (task: GanttTask, start: Date, end: Date) => {}
+        });
+      }
+    };
+
+    loadGantt();
 
     return () => {
       if (ref.current) ref.current.innerHTML = "";

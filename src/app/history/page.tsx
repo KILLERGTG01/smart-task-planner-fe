@@ -1,23 +1,20 @@
 "use client";
 import useSWR from "swr";
 import api from "@/app/lib/axios";
-import { useAuth0 } from "@auth0/auth0-react";
 import { HistoryResponse, Plan } from "@/app/lib/types";
+import { WithAuth } from "@/app/lib/withAuth";
 
 function fetcher(url: string) {
   return api.get(url).then((r) => r.data);
 }
 
-export default function HistoryPage() {
-  const { getAccessTokenSilently, isAuthenticated } = useAuth0();
-
+function HistoryContent() {
   const { data, error, isLoading } = useSWR<HistoryResponse>(
-    isAuthenticated ? "/api/history" : null,
+    "/api/history",
     fetcher,
     { refreshInterval: 0 }
   );
 
-  if (!isAuthenticated) return <div>Please login to see history</div>;
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error loading history</div>;
 
@@ -38,5 +35,13 @@ export default function HistoryPage() {
         ))}
       </div>
     </div>
+  );
+}
+
+export default function HistoryPage() {
+  return (
+    <WithAuth>
+      <HistoryContent />
+    </WithAuth>
   );
 }

@@ -13,8 +13,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const redirectUri = process.env.NEXT_PUBLIC_AUTH0_REDIRECT_URI!;
 
   const onRedirectCallback = (appState?: Auth0AppState) => {
-    const returnTo = appState?.returnTo || "/";
-    router.push(returnTo);
+    // Redirect to callback page which will handle token storage and final redirect
+    router.push("/auth/callback");
   };
 
   return (
