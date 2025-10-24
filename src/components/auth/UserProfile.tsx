@@ -1,15 +1,28 @@
 'use client';
 
-import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 import LogoutButton from './LogoutButton';
 
 interface UserProfileProps {
   showLogout?: boolean;
   className?: string;
+  fallbackToAuth?: boolean;
 }
 
-export default function UserProfile({ showLogout = true, className = '' }: UserProfileProps) {
-  const { user, isAuthenticated, isLoading } = useAuth();
+export default function UserProfile({ 
+  showLogout = true, 
+  className = '',
+  fallbackToAuth = true 
+}: UserProfileProps) {
+  const { profile, isLoading } = useProfile();
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase())
+      .join('')
+      .slice(0, 2);
+  };
 
   if (isLoading) {
     return (
@@ -22,22 +35,28 @@ export default function UserProfile({ showLogout = true, className = '' }: UserP
     );
   }
 
-  if (!isAuthenticated || !user) {
+  if (!profile) {
     return null;
   }
 
   return (
     <div className={`flex items-center space-x-3 ${className}`}>
-      {user.picture && (
+      {profile.picture ? (
         <img
-          src={user.picture}
-          alt={user.name}
+          src={profile.picture}
+          alt={profile.name}
           className="w-8 h-8 rounded-full"
         />
+      ) : (
+        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+          <span className="text-xs font-medium text-blue-600">
+            {getInitials(profile.name)}
+          </span>
+        </div>
       )}
       <div className="flex flex-col">
-        <span className="text-sm font-medium text-gray-900">{user.name}</span>
-        <span className="text-xs text-gray-500">{user.email}</span>
+        <span className="text-sm font-medium text-gray-900">{profile.name}</span>
+        <span className="text-xs text-gray-500">{profile.email}</span>
       </div>
       {showLogout && (
         <LogoutButton className="ml-4">

@@ -24,8 +24,8 @@ export interface User {
   email: string;
   name: string;
   picture?: string;
-  provider: string;
-  created_at?: string;
+  provider?: string;
+  created_at: string;
   updated_at?: string;
 }
 
@@ -50,6 +50,23 @@ export interface AuthError {
   error: string;
   error_description?: string;
   message?: string;
+}
+
+// Profile types
+export interface ProfileResponse {
+  user: User;
+}
+
+export interface ProfileError {
+  error: string;
+  message?: string;
+}
+
+export interface ProfileState {
+  profile: User | null;
+  isLoading: boolean;
+  error: ProfileError | null;
+  lastFetched: number | null;
 }
 
 // Gantt chart types

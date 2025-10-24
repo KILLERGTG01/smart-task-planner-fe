@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { Plan, HistoryResponse, User } from '@/app/lib/types';
+import { Plan, HistoryResponse, User, ProfileResponse, ProfileError } from '@/app/lib/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -60,8 +60,44 @@ class ApiClient {
   }
 
   async getUserProfile(): Promise<User> {
-    const response: AxiosResponse<User> = await this.client.get('/auth/profile');
-    return response.data;
+    const response: AxiosResponse<ProfileResponse> = await this.client.get('/auth/profile');
+    return response.data.user;
+  }
+
+  // Profile-specific method with enhanced error handling
+  async fetchUserProfile(): Promise<{ user: User | null; error: ProfileError | null }> {
+    try {
+      const response: AxiosResponse<ProfileResponse> = await this.client.get('/auth/profile');
+      return { user: response.data.user, error: null };
+    } catch (error: any) {
+      console.error('Profile fetch error:', error);
+      
+      let profileError: ProfileError;
+      
+      if (error.response?.status === 401) {
+        profileError = {
+          error: 'unauthenticated',
+          message: 'Your session has expired. Please sign in again.'
+        };
+      } else if (error.response?.status === 404) {
+        profileError = {
+          error: 'user_not_found',
+          message: 'User profile not found. Please contact support.'
+        };
+      } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+        profileError = {
+          error: 'network_error',
+          message: 'Network error. Please check your connection and try again.'
+        };
+      } else {
+        profileError = {
+          error: 'unknown_error',
+          message: error.response?.data?.error || 'Failed to load profile. Please try again.'
+        };
+      }
+      
+      return { user: null, error: profileError };
+    }
   }
 
   // Auth endpoints
