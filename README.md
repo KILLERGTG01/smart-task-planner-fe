@@ -31,7 +31,9 @@ Smart Task Planner is an intelligent project management tool that transforms you
 - **Mobile Responsive**: Optimized for all screen sizes
 
 ### 🔧 Technical Features
-- **No Authentication Required**: Simple, friction-free experience
+- **Auth0 Authentication**: Secure user authentication with Google OAuth
+- **User Plan History**: Save and access your plans from anywhere
+- **Protected Routes**: Secure access to user-specific features
 - **Real-time Processing**: Instant plan generation and display
 - **Error Handling**: Graceful error management with user-friendly messages
 - **TypeScript**: Full type safety throughout the application
@@ -83,7 +85,13 @@ Smart Task Planner is an intelligent project management tool that transforms you
    
    Configure your environment variables:
    ```env
-   NEXT_PUBLIC_BACKEND_URL=https://api.anurag-goel.com
+   NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
+   NEXT_PUBLIC_AUTH0_DOMAIN=your-auth0-domain.auth0.com
+   NEXT_PUBLIC_AUTH0_CLIENT_ID=your-auth0-client-id
+   NEXT_PUBLIC_AUTH0_AUDIENCE=https://smarttask-api
+   NEXT_PUBLIC_AUTH0_REDIRECT_URI=http://localhost:3000/auth/callback
+   AUTH0_CLIENT_ID=your-auth0-client-id
+   AUTH0_CLIENT_SECRET=your-auth0-client-secret
    ```
 
 4. **Run the development server**

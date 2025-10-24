@@ -18,9 +18,38 @@ export interface HistoryResponse {
   plans: Plan[];
 }
 
-// Auth0 types
-export interface Auth0AppState {
-  returnTo?: string;
+// Authentication types
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  picture?: string;
+  provider: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface AuthState {
+  isAuthenticated: boolean;
+  user: User | null;
+  token: string | null;
+  isLoading: boolean;
+}
+
+export interface TokenExchangeRequest {
+  code: string;
+  redirect_uri: string;
+}
+
+export interface TokenExchangeResponse {
+  access_token: string;
+  user: User;
+}
+
+export interface AuthError {
+  error: string;
+  error_description?: string;
+  message?: string;
 }
 
 // Gantt chart types

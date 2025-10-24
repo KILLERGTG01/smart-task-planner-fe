@@ -3,12 +3,16 @@
 import { useState } from "react";
 import GoalForm from "@/app/components/GoalForm";
 import TaskTimeline from "@/app/components/TaskTimeline";
+import LoginButton from "@/components/auth/LoginButton";
+import UserProfile from "@/components/auth/UserProfile";
+import { useAuth } from "@/hooks/useAuth";
 import api from "@/app/lib/axios";
 import { Task } from "@/app/lib/types";
 
 export default function HomePage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   const onGenerate = async (payload: {
     goal: string;
@@ -32,6 +36,34 @@ export default function HomePage() {
 
   return (
     <div className="space-y-6">
+      {/* Authentication Banner */}
+      {!authLoading && (
+        <div className="bg-white rounded-lg shadow-sm border p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {isAuthenticated ? 'Welcome back!' : 'Get Started'}
+                </h2>
+                <p className="text-sm text-gray-600">
+                  {isAuthenticated 
+                    ? 'Your plans are automatically saved to your account.' 
+                    : 'Sign in to save your plans and access them from anywhere.'
+                  }
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              {isAuthenticated ? (
+                <UserProfile />
+              ) : (
+                <LoginButton />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="text-center">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
           Smart Task Planner
